@@ -20,6 +20,8 @@ def load_uci_file(infile, sheet):
     elif infile.endswith('csv'):
         sheet = "number one, obviously"
         datf = pd.read_csv(infile)
+        datf['InvoiceDate'] = pd.to_datetime(datf.InvoiceDate)
+        del datf['Unnamed: 0']
     else:
         raise NotImplementedError
     assert EXCEL_COLUMNS <= set(datf.to_dict().keys())
