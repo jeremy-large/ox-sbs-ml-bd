@@ -90,10 +90,11 @@ def invoice_df(df, invalid_series=None):
                           gb.Cost.sum(),
                           gb.Hour.max(),
                           gb.Month.max() + gb.Year.max() * 100,
-                          gb.Description.apply(words)],
+                          gb.Description.apply(words),
+                          gb.Country.max()],
                          axis=1)
 
-    invoices.columns = (['customer', 'n_codes', 'n_items', 'spend', 'hour', 'month', 'words'])
+    invoices.columns = (['customer', 'n_codes', 'n_items', 'spend', 'hour', 'month', 'words', 'country'])
 
     invoices['words_per_item'] = invoices.words.apply(len) / invoices.n_codes
 
