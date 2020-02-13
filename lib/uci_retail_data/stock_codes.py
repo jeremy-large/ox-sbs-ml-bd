@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import logging
 
 
 def stock_code_to_num(x, ndigits=5, ignorestring='DCGS'):
@@ -130,19 +131,33 @@ def stockcode_df(df, invalid_series=None):
     return stockcodes
 
 
-def thin_df(df, max_stock_codes, min_customers, invalids):
+def thin_df(df, max_stock_codes, min_customers, invalid_series):
     """
-    :param df:
-    :param max_stock_codes:
-    :param min_customers:
-    :param invalids:
+    :param df: dataframe of the open source UCI dataset
+    :param max_stock_codes: if an invoice has more than this many separate stock codes, exclude it
+    :param min_customers: if a stock code has fewer than this many customers in the data, exclude it
+    :param invalid_series: boolean Series saying whether each item in the dataframe is_invalid()
     :return:
     """
-    inv = invoice_df(df, invalid_series=invalids)
-    stockcodes = stockcode_df(df, invalid_series=invalids)
-    df_inv = pd.merge(df[~invalids], inv, left_on='Invoice', right_index=True)
+    inv = invoice_df(df, invalid_series=invalid_series)
+    stockcodes = stockcode_df(df, invalid_series=invalid_series)
+
+    df_inv = pd.merge(df[~invalid_series], inv, left_on='Invoice', right_index=True)
     df_is = pd.merge(df_inv, stockcodes, left_on='StockCode', right_index=True)
 
-    df_thin = df_is[df_is['codes_in_invoice'] < max_stock_codes]
-    df_thin = df_thin[df_thin['customers_buying_this_code'] > min_customers]
+    df_thin = df_is.copy()
+
+    if max_stock_codes > 0:
+        df_thin = df_thin[df_thin['codes_in_invoice'] < max_stock_codes]
+        logging.info(f"Removed invoices with more than {max_stock_codes} different stock codes.")
+        logging.info(f"{len(df_bp) - len(df_thin)} rows removed from a dataset of {len(df_bp)} rows")
+
+    if min_customers > 0:
+        orig_len = len(df_thin)
+        df_thin = df_thin[df_thin['customers_buying_this_code'] > min_customers]
+        logging.info(f"Removed stock codes with fewer than {min_customers} different purchasers.")
+        logging.info(f"{orig_len - len(df_thin)} rows removed from a dataset of {orig_len} rows")
+
+    df_thin.sort_index(inplace=True)
+
     return df_thin[df.columns]
