@@ -94,8 +94,55 @@ def invoice_df(df, invalid_series=None):
                           gb.Country.max()],
                          axis=1)
 
-    invoices.columns = (['customer', 'n_codes', 'n_items', 'spend', 'hour', 'month', 'words', 'country'])
+    invoices.columns = (['customer',
+                         'codes_in_invoice',
+                         'items_in_invoice',
+                         'invoice_spend',
+                         'hour', 'month', 'words', 'country'])
 
-    invoices['words_per_item'] = invoices.words.apply(len) / invoices.n_codes
+    invoices['words_per_item'] = invoices.words.apply(len) / invoices.codes_in_invoice
 
     return invoices
+
+
+def stockcode_df(df, invalid_series=None):
+    """
+    :param df: original dataframe from UCI
+    :param invalid_series: boolean Series saying whether each item in the dataframe is_invalid()
+    :return: a dataframe with one row per stock code
+    """
+    df = df.copy()
+    df['Cost'] = df.Price * df.Quantity
+    if invalid_series is not None:
+        df = df.loc[~invalid_series]
+
+    gb = df.groupby('StockCode')
+
+    stockcodes = pd.concat([gb['Customer ID'].nunique(),
+                            gb.Invoice.nunique(),
+                            gb.Quantity.sum(),
+                            # gb.Cost.sum()
+                            ],
+                           axis=1)
+
+    stockcodes.columns = (['customers_buying_this_code', 'invoices_with_this_code', 'n_units_sold'])
+
+    return stockcodes
+
+
+def thin_df(df, max_stock_codes, min_customers, invalids):
+    """
+    :param df:
+    :param max_stock_codes:
+    :param min_customers:
+    :param invalids:
+    :return:
+    """
+    inv = invoice_df(df, invalid_series=invalids)
+    stockcodes = stockcode_df(df, invalid_series=invalids)
+    df_inv = pd.merge(df[~invalids], inv, left_on='Invoice', right_index=True)
+    df_is = pd.merge(df_inv, stockcodes, left_on='StockCode', right_index=True)
+
+    df_thin = df_is[df_is['codes_in_invoice'] < max_stock_codes]
+    df_thin = df_thin[df_thin['customers_buying_this_code'] > min_customers]
+    return df_thin[df.columns]
