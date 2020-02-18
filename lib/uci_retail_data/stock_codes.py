@@ -14,7 +14,7 @@ def stock_code_to_num(x, ndigits=5, ignorestring='DCGS'):
         try:
             return int(x.strip(ignorestring)[:ndigits])
         except ValueError:
-            print(x)
+            logging.debug(x)
             return 0
     return x
 
@@ -122,11 +122,12 @@ def stockcode_df(df, invalid_series=None):
     stockcodes = pd.concat([gb['Customer ID'].nunique(),
                             gb.Invoice.nunique(),
                             gb.Quantity.sum(),
+                            gb.Description.apply(lambda x: x.iloc[0]),
                             # gb.Cost.sum()
                             ],
                            axis=1)
 
-    stockcodes.columns = (['customers_buying_this_code', 'invoices_with_this_code', 'n_units_sold'])
+    stockcodes.columns = (['customers_buying_this_code', 'invoices_with_this_code', 'n_units_sold', 'description'])
 
     return stockcodes
 
