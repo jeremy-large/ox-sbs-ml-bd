@@ -123,11 +123,21 @@ def stockcode_df(df, invalid_series=None):
                             gb.Invoice.nunique(),
                             gb.Quantity.sum(),
                             gb.Description.apply(lambda x: x.iloc[0]),
-                            # gb.Cost.sum()
+                            gb.Price.max(),
+                            gb.Price.min(),
+                            gb.Cost.sum() / gb.Quantity.sum(),
+                            gb.Price.std()
                             ],
                            axis=1)
 
-    stockcodes.columns = (['customers_buying_this_code', 'invoices_with_this_code', 'n_units_sold', 'description'])
+    stockcodes.columns = (['customers_buying_this_code',
+                           'invoices_with_this_code',
+                           'n_units_sold',
+                           'description',
+                           'max_price',
+                           'min_price',
+                           'mean_price',
+                           'stdev_price'])
 
     return stockcodes
 
