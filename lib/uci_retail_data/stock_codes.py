@@ -10,13 +10,14 @@ def stock_code_to_num(x, ndigits=5, ignorestring='DCGS'):
     :param ignorestring: string to ignore within the code
     :return: an integer
     """
-    if type(x) == str:
-        try:
-            return int(x.strip(ignorestring)[:ndigits])
-        except ValueError:
-            logging.debug(x)
-            return 0
-    return x
+    s = str(x).strip(ignorestring)
+    try:
+        five_digits = s[:ndigits]
+        last_bit = "".join(str(ord(c)) for c in s[ndigits:])
+        return int(last_bit + five_digits)
+    except ValueError:
+        logging.debug(x)
+        return 0
 
 
 def is_invalid(datapoint):
