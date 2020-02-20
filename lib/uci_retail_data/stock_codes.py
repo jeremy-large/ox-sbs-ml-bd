@@ -10,13 +10,14 @@ def stock_code_to_num(x, ndigits=5, ignorestring='DCGS'):
     :param ignorestring: string to ignore within the code
     :return: an integer
     """
-    if type(x) == str:
-        try:
-            return int(x.strip(ignorestring)[:ndigits])
-        except ValueError:
-            print(x)
-            return 0
-    return x
+    s = str(x).strip(ignorestring)
+    try:
+        five_digits = s[:ndigits]
+        last_bit = "".join(str(ord(c)) for c in s[ndigits:])
+        return int(last_bit + five_digits)
+    except ValueError:
+        logging.debug(x)
+        return 0
 
 
 def is_invalid(datapoint):
@@ -122,11 +123,22 @@ def stockcode_df(df, invalid_series=None):
     stockcodes = pd.concat([gb['Customer ID'].nunique(),
                             gb.Invoice.nunique(),
                             gb.Quantity.sum(),
-                            # gb.Cost.sum()
+                            gb.Description.apply(lambda x: x.iloc[0]),
+                            gb.Price.max(),
+                            gb.Price.min(),
+                            gb.Cost.sum() / gb.Quantity.sum(),
+                            gb.Price.std()
                             ],
                            axis=1)
 
-    stockcodes.columns = (['customers_buying_this_code', 'invoices_with_this_code', 'n_units_sold'])
+    stockcodes.columns = (['customers_buying_this_code',
+                           'invoices_with_this_code',
+                           'n_units_sold',
+                           'description',
+                           'max_price',
+                           'min_price',
+                           'mean_price',
+                           'stdev_price'])
 
     return stockcodes
 
