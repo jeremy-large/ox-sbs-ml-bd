@@ -10,7 +10,9 @@ def stock_code_to_num(x, ndigits=5, ignorestring='DCGS'):
     :param ignorestring: string to ignore within the code
     :return: an integer
     """
-    s = str(x).strip(ignorestring)
+    s = str(x)
+    if s.startswith(ignorestring):
+        s = s[len(ignorestring):]
     try:
         five_digits = s[:ndigits]
         last_bit = "".join(str(ord(c)) for c in s[ndigits:])
