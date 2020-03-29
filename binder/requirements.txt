@@ -2,3 +2,4 @@ numpy==1.16.*
 matplotlib==3.*
 xlrd==1.1.0
 pandas
+sklearn
