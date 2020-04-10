@@ -73,9 +73,8 @@ def mfe_r2_diag(data_array, histogram=False):
     else:
         plt.scatter(range(n), data_array, marker='.')
         plt.axhline(np.mean(data_array), color='r')
-    plt.xlabel(f"The {n} different k-fold splits")
-    plt.title("R2, as calculated *only* on the testing datapoints")
+    plt.title(f"R2, as calculated *only* on the testing datapoints from {n} different k-fold splits")
     plt.grid()
-    plt.title(f'Average value of {np.round(np.mean(data_array), 3)} shown in red')
+    plt.xlabel(f'Average value of the data, {np.round(np.mean(data_array), 3)}, is shown in red')
     plt.axhline(0, color='k')
     plt.show()
