@@ -37,16 +37,16 @@ def train_n_test(Xm, y, n_folds, verbose=False, model=None):
     @param model: by default None. Can also be set to another model with methods .fit() and .predict()
     @return : a list of floats, each is the test R2 from a fold of the data
     """
-    model = model or LinearRegression()
+    model = LinearRegression() if model is None else model
 
     kfold = KFold(n_splits=n_folds, shuffle=True)
 
     scores = []
     for (train, test) in kfold.split(Xm, y):
 
-        if verbose or (scores == []):
+        if verbose or (len(scores)%1000 == 0):
             print(f"In study {len(scores) + 1}/{n_folds}, {len(test)} datapoints were held back for testing; "
-                  f"first 10 such points = {test[:10]}")
+                  f"first few such points = {test[:10]}")
 
         model.fit(Xm.iloc[train], y.iloc[train])
 
