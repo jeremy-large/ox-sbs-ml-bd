@@ -28,53 +28,54 @@ def get_standard_data():
     return df, invalids, invoices
 
 
-def train_n_test(Xm, y, n_folds, verbose=True):
+def train_n_test(Xm, y, n_folds, verbose=False, model=None):
     """
     @param Xm: rectangle of feature data
     @param y: list or array of target data
     @param n_folds: the number of splits, or folds, of the data that we would like performed
     @param verbose: Boolean. If True, report on intermediate steps
+    @param model: by default None. Can also be set to another model with methods .fit() and .predict()
     @return : a list of floats, each is the test R2 from a fold of the data
     """
+    model = model or LinearRegression()
 
     kfold = KFold(n_splits=n_folds, shuffle=True)
-    splits = kfold.split(Xm, y)
 
     scores = []
-    for (train, test) in splits:
+    for (train, test) in kfold.split(Xm, y):
 
         if verbose or (scores == []):
             print(f"In study {len(scores) + 1}/{n_folds}, {len(test)} datapoints were held back for testing; "
                   f"first 10 such points = {test[:10]}")
 
-        reg = LinearRegression()
-        reg.fit(Xm.iloc[train], y.iloc[train])
+        model.fit(Xm.iloc[train], y.iloc[train])
 
-        r2 = metrics.r2_score(  # r2_score() takes two arguments ...
-            y.iloc[test],  # the actual targets, and ...
-            reg.predict(Xm.iloc[test])  # the fitted targets.
-        )  # We get a number between 0 and 1 back
+        r2 = metrics.r2_score(                                # r2_score() takes two arguments ...
+                                y.iloc[test],                 # the actual targets, and ...
+                                model.predict(Xm.iloc[test])  # the fitted targets.
+                             )                                # We get a number (maybe between 0 and 1) back
 
         scores.append(r2)
 
     return scores
 
 
-def mfe_r2_diag(data_array, histogram=False):
+def mfe_r2_diag(x, histogram=False, title=None, n_bins=30):
     """
-    @param data_array: a list or array of quality data from a series of statistical fits
+    @param x: a list or array of quality data from a series of statistical fits
     @param histogram: Boolean. If True, plot a histogram, otherwise plot a scatter of all the data
+    @param title: an optional string which is the title for the chart
     @return : nothing
     """
-    n = len(data_array)
+
     if histogram:
-        plt.hist(data_array, bins=30)
-        plt.axvline(plt.mean(data_array), color='r')
+        plt.hist(x, bins=n_bins)
+        plt.axvline(np.mean(x), color='r')
     else:
-        plt.scatter(range(n), data_array, marker='.')
-        plt.axhline(np.mean(data_array), color='r')
-    plt.title(f"R2, as calculated *only* on the testing datapoints from {n} different k-fold splits")
-    plt.grid()
-    plt.xlabel(f'Average value of the data, {np.round(np.mean(data_array), 3)}, is shown in red')
-    plt.axhline(0, color='k')
-    plt.show()
+        plt.scatter(range(len(x)), x, marker='.')
+        plt.axhline(np.mean(x), color='r')
+
+    plt.xlabel(f'Average value of the data, {np.round(np.mean(x), 3)}, is shown in red')
+    plt.title(title or f"R2, as calculated *only* on the testing datapoints from {len(x)} different k-fold splits")
+
+    plt.grid(); plt.axhline(0, color='k'); plt.show()
