@@ -54,9 +54,9 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
             train, test = (test, train)    # swap em!
 
         if len(scores) % update_frequency == 0:
-
-            logging.info(f"In study {len(scores) + 1}/{n_folds}, train on {len(train)} points; then test on the other {len(test)}; "
-                  f"first few test points = {test[:10]} ")
+            logging.info(
+                f"In study {len(scores) + 1}/{n_folds}, train on {len(train)} points; then test on the other {len(test)}: "
+                f"first few test points = {test[:5]} ")
 
         model.fit(Xm[train], y[train])
 
