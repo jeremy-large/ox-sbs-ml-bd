@@ -3,6 +3,8 @@ import logging
 import numpy as np
 import pylab as plt
 
+import itertools
+
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
@@ -91,3 +93,18 @@ def mfe_r2_diag(x, histogram=False, metric_name=None, n_bins=30):
     plt.title(f"{metric_name}, as calculated *only* on the testing datapoints from {len(x)} different k-fold splits")
 
     plt.grid(); plt.axhline(0, color='k'); plt.show()
+
+
+def build_polynomial_dataframe(data, der):
+    """
+    @param data: a DataFrame() of features (or regressors)
+    @param der: a positive integer - the highest order of polynomial terms to be generated
+    @return: a DataFrame() containing data, as well as polynomial terms of that data, up to order der
+    This function really just *wraps* itertools.combinations_with_replacement()
+    """
+    poly_data = data.copy()
+    for o in range(1, der + 1):
+        for tpl in itertools.combinations_with_replacement(data.columns, o):
+            name = "_x_".join(tpl)
+            poly_data[name] = data[list(tpl)].prod(axis=1)
+    return poly_data
