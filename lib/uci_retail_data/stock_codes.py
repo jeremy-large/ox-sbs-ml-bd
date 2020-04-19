@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 import logging
@@ -65,7 +67,15 @@ def invalid_series(datf):
     :param datf:
     :return: boolean Series saying whether each item in the dataframe is_invalid()
     """
-    return pd.Series([is_invalid(row) for index, row in datf.iterrows()])
+    repo_dir = os.path.dirname(os.getcwd())
+    local_data_file = os.path.join(repo_dir, 'data', 'invalids.csv')
+    if os.path.exists(local_data_file):
+        in_data = pd.read_csv(local_data_file)
+        return in_data[in_data.columns[-1]]
+    df = pd.Series([is_invalid(row) for index, row in datf.iterrows()])
+    df.to_csv(local_data_file)
+    logging.info('Saving a copy to ' + local_data_file)
+    return df
 
 
 def invoice_df(df, invalid_series=None):
