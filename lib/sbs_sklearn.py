@@ -1,4 +1,3 @@
-import os
 import logging
 import numpy as np
 import pylab as plt
@@ -14,20 +13,9 @@ from uci_retail_data import uci_files
 
 
 def get_standard_data():
-    repo_dir = os.path.dirname(os.getcwd())
-    local_data_file = os.path.join(repo_dir, 'data', 'raw.csv')
-
-    if os.path.exists(local_data_file):
-        df = uci_files.load_uci_file(local_data_file, uci_files.SHEET_NAME)
-    else:
-        df = uci_files.load_uci_file(uci_files.REMOTE_FILE, uci_files.SHEET_NAME)
-        df.to_csv(local_data_file)
-        logging.info('Saving a copy to ' + local_data_file)
-
-    # familiar dataset:
+    df = uci_files.standard_uci_data_access()
     invalids = stock_codes.invalid_series(df)
-    invoices = stock_codes.invoice_df(df, invalid_series=invalids)
-    return df, invalids, invoices
+    return df, invalids, stock_codes.invoice_df(df, invalid_series=invalids)
 
 
 def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, train_on_minority=False):

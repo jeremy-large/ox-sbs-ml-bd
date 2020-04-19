@@ -1,4 +1,6 @@
 import logging
+import os
+
 import pandas as pd
 
 
@@ -27,3 +29,14 @@ def load_uci_file(infile, sheet):
     assert EXCEL_COLUMNS <= set(datf.to_dict().keys())
     logging.info('Loaded ' + infile + ' , sheet ' + sheet)
     return datf
+
+
+def standard_uci_data_access():
+    repo_dir = os.path.dirname(os.getcwd())
+    local_data_file = os.path.join(repo_dir, 'data', 'raw.csv')
+    if os.path.exists(local_data_file):
+        return load_uci_file(local_data_file, SHEET_NAME)
+    df = load_uci_file(REMOTE_FILE, SHEET_NAME)
+    df.to_csv(local_data_file)
+    logging.info('Saving a copy to ' + local_data_file)
+    return df
