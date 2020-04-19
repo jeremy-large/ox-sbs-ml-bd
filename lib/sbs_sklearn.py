@@ -31,7 +31,7 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
     """
     update_frequency = update_frequency or len(y) - 1
     model = LinearRegression() if model is None else model
-    metric = metrics.r2_score if metric is None else metric
+    metric = metrics.mean_squared_error if metric is None else metric
     y = y.values.ravel()   # strip out from y just its float values as an array
     Xm = X.values          # strip out from X just the array of data it contains
 
@@ -60,25 +60,26 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
     return scores
 
 
-def mfe_r2_diag(x, histogram=False, metric_name=None, n_bins=30):
+def plot_kfold_scores(ss, scatter=False, metric_name=None, n_bins=30):
     """
-    @param x: a list or array of quality data from a series of statistical fits
-    @param histogram: Boolean. If True, plot a histogram, otherwise plot a scatter of all the data
+    @param ss: a list or array of quality data from a series of statistical fits
+    @param scatter: Boolean. If True, plot a scatter of all the data, otherwise plot a histogram
     @param metric_name: an optional string which is the name of the metric, a list of which is in x
+    @param n_bins: the number of bins to apply if a histogram is plotted
     @return : nothing
     """
 
-    metric_name = metric_name or 'R2'
+    metric_name = metric_name or 'MSE'
 
-    if histogram:
-        plt.hist(x, bins=n_bins)
-        plt.axvline(np.mean(x), color='r')
+    if scatter:
+        plt.scatter(range(len(ss)), ss, marker='.')
+        plt.axhline(np.mean(ss), color='r')
     else:
-        plt.scatter(range(len(x)), x, marker='.')
-        plt.axhline(np.mean(x), color='r')
+        plt.hist(ss, bins=n_bins)
+        plt.axvline(np.mean(ss), color='r')
 
-    plt.xlabel(f'Average value of the data, {np.round(np.mean(x), 3)}, is shown in red')
-    plt.title(f"{metric_name}, as calculated *only* on the testing datapoints from {len(x)} different k-fold splits")
+    plt.xlabel(f'Average value of the data, {np.round(np.mean(ss), 3)}, is shown in red')
+    plt.title(f"{metric_name}, as calculated *only* on the testing datapoints from {len(ss)} different k-fold splits")
 
     plt.grid(); plt.axhline(0, color='k'); plt.show()
 
