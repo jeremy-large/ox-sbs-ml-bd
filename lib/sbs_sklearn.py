@@ -4,7 +4,7 @@ import pylab as plt
 
 import itertools
 
-from sklearn.model_selection import KFold
+from sklearn import model_selection
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
 
@@ -18,7 +18,7 @@ def get_standard_data():
     return df, invalids, stock_codes.invoice_df(df, invalid_series=invalids)
 
 
-def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, train_on_minority=False):
+def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, train_on_minority=False, concise=True):
     """
     @param X: a pandas DataFrame of features data of shape (A, B)
     @param y: a pandas Series of target data, of length A
@@ -34,8 +34,8 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
     metric = metrics.mean_squared_error if metric is None else metric
     y = y.values.ravel()   # strip out from y just its float values as an array
     Xm = X.values          # strip out from X just the array of data it contains
-
-    kfold = KFold(n_splits=n_folds, shuffle=True)
+    if type(n_folds) == int:
+        kfold = model_selection.KFold(n_splits=n_folds, shuffle=True)
 
     scores = []
     for (train, test) in kfold.split(Xm, y):
@@ -44,9 +44,12 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
             train, test = (test, train)    # swap em!
 
         if len(scores) % update_frequency == 0:
-            logging.info(
-                f"In study {len(scores) + 1}/{n_folds}, train on {len(train)} points; then test on the other {len(test)}: "
-                f"first few test points = {test[:5]} ")
+            if not concise:
+                logging.info(
+                    f"In study {len(scores) + 1}/{n_folds}, train on {len(train)} randomly selected points; "
+                    f"then test on the other {len(test)}: first few test points = {test[:5]} ")
+            else:
+                logging.info(f"Study {len(scores) + 1}/{n_folds}: {len(train)} train rows;  {len(test)} test rows")
 
         model.fit(Xm[train], y[train])
 
