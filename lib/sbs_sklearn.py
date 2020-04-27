@@ -25,7 +25,7 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
     @param n_folds: the number of splits, or folds, of the data that we would like performed
     @param update_frequency: after implementing this many folds, provide an update
     @param model: by default LinearRegression(). Can also be set to another model with methods .fit() and .predict()
-    @param metric: by default metrics.r2_score. Can also be set to another metric
+    @param metric: by default metrics.mean_squared_error. Can also be set to another metric
     @param train_on_minority: if set to True, then reverse the roles of test and train
     @return : a list of floats, each is the test R2 from a fold of the data
     """
