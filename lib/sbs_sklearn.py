@@ -27,7 +27,7 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
     @param model: by default LinearRegression(). Can also be set to another model with methods .fit() and .predict()
     @param metric: by default metrics.mean_squared_error. Can also be set to another metric
     @param train_on_minority: if set to True, then reverse the roles of test and train
-    @return : a list of floats, each is the test R2 from a fold of the data
+    @return : a list of floats, each is the test MSE from a fold of the data
     """
     update_frequency = update_frequency or len(y) - 1
     model = LinearRegression() if model is None else model
