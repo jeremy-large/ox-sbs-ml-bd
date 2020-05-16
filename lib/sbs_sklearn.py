@@ -18,6 +18,12 @@ def get_standard_data():
     return df, invalids, stock_codes.invoice_df(df, invalid_series=invalids)
 
 
+def __select_metric(y):
+    if y.dtype == float:
+        return metrics.mean_squared_error
+    return metrics.confusion_matrix
+
+
 def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, train_on_minority=False, concise=True):
     """
     @param X: a pandas DataFrame of features data of shape (A, B)
@@ -29,11 +35,12 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
     @param train_on_minority: if set to True, then reverse the roles of test and train
     @return : a list of floats, each is the test MSE from a fold of the data
     """
+    y = y.values.ravel()            # strip out from y just its float values as an array
+    Xm = X.reset_index(drop=True)   # apply a new index to X, if necessary, which just counts up from 0 to (len(X)-1)
+
     update_frequency = update_frequency or len(y) - 1
     model = LinearRegression() if model is None else model
-    metric = metrics.mean_squared_error if metric is None else metric
-    y = y.values.ravel()   # strip out from y just its float values as an array
-    Xm = X.values          # strip out from X just the array of data it contains
+    metric = __select_metric(y) if metric is None else metric
     if type(n_folds) == int:
         kfold = model_selection.KFold(n_splits=n_folds, shuffle=True)
 
@@ -51,11 +58,11 @@ def train_n_test(X, y, n_folds, update_frequency=None, model=None, metric=None, 
             else:
                 logging.info(f"Study {len(scores) + 1}/{n_folds}: {len(train)} train rows;  {len(test)} test rows")
 
-        model.fit(Xm[train], y[train])
+        model.fit(Xm.loc[train], y[train])
 
         score = metric(                              # r2_score(), and similar metrics, takes two arguments ...
                        y[test],                 # the actual targets, and ...
-                       model.predict(Xm[test])  # the fitted targets.
+                       model.predict(Xm.loc[test])  # the fitted targets.
                       )                              # We get a number (maybe between 0 and 1) back
 
         scores.append(score)
